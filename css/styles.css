@@ -1,0 +1,9 @@
+body {
+    background-color: lightgrey;
+    text-align: center;
+}
+
+#myCanvas {
+    background-color: bisque;
+    border:1px solid #000000;
+}
