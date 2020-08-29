@@ -4,7 +4,7 @@ body {
 }
 
 #myCanvas {
-    background-color: bisque;
+    background-color: white;
     border:1px solid #000000;
 }
 
@@ -22,7 +22,7 @@ body {
     display: inline-block;
     position: absolute;
     top: 5vh;
-    left: 30vw;
+    left: 28vw;
 }
 
 textarea {
