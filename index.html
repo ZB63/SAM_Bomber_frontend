@@ -4,12 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <script type="text/javascript" src="js/communication.js"></script>
     <title>Bomber</title>
 </head>
 <body>
-    <canvas id="myCanvas" width="800" height="600">
-    Your browser does not support the HTML canvas tag.
-    </canvas>
+
+    <div id="controlPanel">
+        <form name="myform">
+
+            <p>Nazwa użytkownika:</p>
+            <p>
+                <textarea name="userNameImput" cols=25></textarea>
+            </p>
+
+            <p>Adres serwera:</p>
+            <p>
+                <textarea name="serverAddressImput" cols=25>ws://localhost:8000/</textarea>
+            </p>
+
+            <p>
+                <input type="button" name=connectButton value="Connect" onClick="onConnect();">
+                <input type="button" name=disconnectButton value="Disconnect" onClick="onDisconnect();">
+            </p>
+
+            <p id="userResponseField" style="color:darkblue; font-size:large;">
+                
+            </p>
+        </form>
+    </div>
+
+    <div id="gamePanel">
+        <canvas id="myCanvas" width="800" height="600">
+            Your browser does not support the HTML canvas tag.
+        </canvas>
+    </div>
+
     <script src="js/script.js"></script>
 </body>
 </html>

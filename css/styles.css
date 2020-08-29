@@ -7,3 +7,24 @@ body {
     background-color: bisque;
     border:1px solid #000000;
 }
+
+#controlPanel {
+    display: inline-block;
+    position: absolute;
+    top: 5vh;
+    left: 5vw;
+    width: 20vw;
+    border: 3px solid black;
+    background-color: lightslategrey;
+}
+
+#gamePanel {
+    display: inline-block;
+    position: absolute;
+    top: 5vh;
+    left: 30vw;
+}
+
+textarea {
+    resize: none;
+ }
