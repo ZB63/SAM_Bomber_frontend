@@ -14,6 +14,8 @@ let c = document.getElementById("myCanvas")
 let ctx = c.getContext("2d")
 let websocket;
 
+let gameStarted = false
+
 let playersPos = [
     [0, 0],
     [0, 0],
@@ -46,8 +48,8 @@ function onConnect() {
     websocket = new WebSocket(document.myform.serverAddressImput.value);
     websocket.onopen = function(evt) { onOpen(evt) };
     websocket.onclose = function(evt) { onClose(evt) };
-    // websocket.onmessage = function(evt) { onMessage(evt) };
-    // websocket.onerror = function(evt) { onError(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
 }
 
 function onOpen(evt) {
@@ -62,18 +64,27 @@ function onClose(evt) {
 	document.myform.disconnectButton.disabled = true;
 }
 
-function onMessage(evt) {
-    // TO DO
-    // OBSLUGA PRZYCHODZACYCH POLECEN
-    // DUZO ROBOTY!!!
-    console.log(evt.data)
-}
-
 function onError(evt) {
 	websocket.close();
     document.getElementById("userResponseField").innerHTML = "Wystapił błąd!"
 	document.myform.connectButton.disabled = false;
 	document.myform.disconnectButton.disabled = true;
+}
+
+function onMessage(evt) {
+    // TO DO
+    // OBSLUGA PRZYCHODZACYCH POLECEN
+    // DUZO ROBOTY!!!
+    let received = JSON.parse(evt.data)
+
+    if(!gameStarted && received.includes("welcome_msg")) {
+        // obsługa welcome msg
+        // ustawienie zmiennych z danymi na temat boxów i graczy
+    } else if(gameStarted) {
+        // modyfikacja zmiennych z danymi na temat boxów i graczy
+    }
+
+    console.log(evt.data)
 }
 
 // TO DO
