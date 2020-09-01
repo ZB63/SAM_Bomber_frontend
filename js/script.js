@@ -5,16 +5,19 @@ const UPPER_LINE = HEIGHT/6
 const LEFT_LINE = WIDTH*(3/16)
 const RIGHT_LINE = WIDTH*(13/16)
 
-let boardSize = 7 // Musi byc nieprzyste
-
 const GAME_BOARD = HEIGHT-UPPER_LINE // == RIGHT_LINE - LEFT_LINE
-const SQUARE = GAME_BOARD / boardSize
+
+let gameStarted = false
+let boardSize = 7 // Musi byc nieparzyste
+let uID;
+let bombAmount;
+let currentScore;
+let boxAmount;
+let giftAmount;
 
 let c = document.getElementById("myCanvas")
 let ctx = c.getContext("2d")
 let websocket;
-
-let gameStarted = false
 
 let playersPos = [
     [0, 0],
@@ -22,6 +25,26 @@ let playersPos = [
     [0, 0],
     [0, 0]
   ];
+
+let playersNicks = [
+    "stefan",
+    null,
+    null,
+    null
+];
+
+var bomb = {
+    uid : null,
+    x : null,
+    y : null
+}
+
+var bomb_Explosion = {
+    uid : null,
+    x_range : null,
+    y_range : null,
+    objects_hit : null
+}
 
 window.setInterval(gameLoop,5)
 
@@ -40,6 +63,12 @@ document.addEventListener('keydown', function(event) {
 })
 
 function gameLoop() {
+    
+    //test
+    var obj = JSON.parse('{"map_size_x":11, "map_size_y": 11, "client_uid": 77, "bombs_amount": 3, "current_score": 0, "box": 0, "gifts": 0}');
+    create_Welcome_Msg(obj);
+    SQUARE = GAME_BOARD / boardSize
+
     drawBackground(boardSize,boardSize)
     drawPlayers()
 }
@@ -71,6 +100,49 @@ function onError(evt) {
 	document.myform.disconnectButton.disabled = true;
 }
 
+function pos_Msg(message){
+    for(var i = 0; i < 4; i++){
+        if(playersNicks[i] == message.nick)
+            playersPos[i] = playersPos[message.x][message.y];
+    }
+}
+
+function bomb_Amount_Msg(message){
+    bombAmount = message.amount;
+}
+
+function bomb_Planted_Msg(message){
+    bomb.uid = message.bomb_uid;
+    bomb.x = message.x;
+    bomb.y = message.y;
+    //...
+}
+
+function handle_Explosion(message){
+    bomb_Explosion.uid = message.bomb_uid;
+    bomb_Explosion.x_range = message.x_range;
+    bomb_Explosion.y_range = message.y_range;
+    bomb_Explosion.objects_hit = message.objects_hit;
+}
+
+function create_Welcome_Msg(message){
+    boardSize = message.map_size_x;
+    uID = message.client_uid;
+    bombAmount = message.bombs_amount;
+    currentScore = 0;
+    boxAmount = message.box;
+    giftAmount = message.gifts;
+}
+
+function disconnect_Player(message){
+    for(var i = 0; i < 4; i++){
+        if(playersNicks[i] == message.nick)
+            playersPos[i] = playersPos[message.x][message.y];
+        playersNicks[i] = null;
+    }
+}
+
+
 function onMessage(evt) {
     // TO DO
     // OBSLUGA PRZYCHODZACYCH POLECEN
@@ -78,8 +150,7 @@ function onMessage(evt) {
     let received = JSON.parse(evt.data)
 
     if(!gameStarted && received.includes("welcome_msg")) {
-        // obsługa welcome msg
-        // ustawienie zmiennych z danymi na temat boxów i graczy
+        
     } else if(gameStarted) {
         // modyfikacja zmiennych z danymi na temat boxów i graczy
     }
@@ -94,13 +165,37 @@ function doSend(message) {
 
 // RYSUJE TYLKO 1 GRACZA, TRZEBA ZMIENIC
 function drawPlayers() {
-    let player1Img = new Image(SQUARE,SQUARE)
-    player1Img.onload = function() {
-        ctx.drawImage(player1Img, LEFT_LINE + SQUARE + playersPos[0][0]*SQUARE, UPPER_LINE + SQUARE + playersPos[0][1]*SQUARE, this.width, this.height)
 
-    }
-    player1Img.src = "sprites/player1.png"
+        if(playersNicks[0] != null){
+            let player1Img = new Image(SQUARE,SQUARE)
+            player1Img.onload = function() {
+                ctx.drawImage(player1Img, LEFT_LINE + SQUARE + playersPos[0][0]*SQUARE, UPPER_LINE + SQUARE + playersPos[0][1]*SQUARE, this.width, this.height)
+            }
+            player1Img.src = "sprites/player1.png"
+        }
+        if(playersNicks[1] != null){
+            let player2Img = new Image(SQUARE,SQUARE)
+            player2Img.onload = function() {
+                ctx.drawImage(player2Img, LEFT_LINE + SQUARE + playersPos[1][0]*SQUARE, UPPER_LINE + SQUARE + playersPos[1][1]*SQUARE, this.width, this.height)
+            }
+            player2Img.src = "sprites/player1.png"
+        }
+        if(playersNicks[2] != null){
+            let player3Img = new Image(SQUARE,SQUARE)
+            player3Img.onload = function() {
+                ctx.drawImage(player3Img, LEFT_LINE + SQUARE + playersPos[2][0]*SQUARE, UPPER_LINE + SQUARE + playersPos[2][1]*SQUARE, this.width, this.height)
+            }
+            player3Img.src = "sprites/player1.png"
+        }
+        if(playersNicks[3] != null){
+            let player4Img = new Image(SQUARE,SQUARE)
+            player4Img.onload = function() {
+                ctx.drawImage(player4Img, LEFT_LINE + SQUARE + playersPos[3][0]*SQUARE, UPPER_LINE + SQUARE + playersPos[3][1]*SQUARE, this.width, this.height)
+            }
+            player4Img.src = "sprites/player1.png"
+        }
 }
+
 
 // RYSUJE TŁO
 
