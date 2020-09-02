@@ -28,7 +28,7 @@ let playersPos = [
 
 let playersNicks = [
     "stefan",
-    null,
+    "stolec",
     null,
     null
 ];
@@ -54,7 +54,7 @@ document.addEventListener('keydown', function(event) {
     if(key === 37) {
         playersPos[0][0] = playersPos[0][0] - 1
         //test, jak pojdziemy w lewo to przeniesie nas w rog i usunie gracza
-        var objj = JSON.parse('{"message_code": "player_pos", "nick": "stefan", "x": -1, "y": -1}');
+        var objj = JSON.parse('{"message_code": "player_pos", "nick": "stolec", "x": -1, "y": -1}');
         disconnect_Player(objj);
     } else if(key === 39) {
         playersPos[0][0] = playersPos[0][0] + 1
