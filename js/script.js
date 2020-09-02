@@ -8,12 +8,14 @@ const RIGHT_LINE = WIDTH*(13/16)
 const GAME_BOARD = HEIGHT-UPPER_LINE // == RIGHT_LINE - LEFT_LINE
 
 let gameStarted = false
-let boardSize = 7 // Musi byc nieparzyste
+let boardSize = 11 // Musi byc nieparzyste
 let uID;
 let bombAmount;
 let currentScore;
-let boxAmount;
-let giftAmount;
+let boxes;
+let gifts;
+
+let SQUARE = GAME_BOARD / boardSize
 
 let c = document.getElementById("myCanvas")
 let ctx = c.getContext("2d")
@@ -33,21 +35,19 @@ let playersNicks = [
     null
 ];
 
-var bomb = {
+let bombs = {
     uid : null,
     x : null,
     y : null
 }
 
-var bomb_Explosion = {
+// czy to aby na pewno jest potrzebne?
+let bomb_Explosion = {
     uid : null,
     x_range : null,
     y_range : null,
     objects_hit : null
 }
-
-window.setInterval(gameLoop,5)
-
 
 document.addEventListener('keydown', function(event) {
     let key = event.which
@@ -65,16 +65,15 @@ document.addEventListener('keydown', function(event) {
     }
 })
 
+//var obj = JSON.parse('{"msg_code": "welcome_msg", "map_size_x":11, "map_size_y": 11, "client_uid": 77, "bombs_amount": 3, "current_score": 0, "box": 0, "gifts": 0}');
+
 function gameLoop() {
     
     //test
-    var obj = JSON.parse('{"msg_code": "welcome_msg", "map_size_x":11, "map_size_y": 11, "client_uid": 77, "bombs_amount": 3, "current_score": 0, "box": 0, "gifts": 0}');
-    create_Welcome_Msg(obj);
-    SQUARE = GAME_BOARD / boardSize
 
     drawBackground(boardSize,boardSize)
     drawPlayers()
-
+    drawBoxes()
 }
 
 function onConnect() {
@@ -85,10 +84,19 @@ function onConnect() {
     websocket.onerror = function(evt) { onError(evt) };
 }
 
+function onDisconnect() {
+    console.log("UID:" + uID)
+    let message = { msg_code: "disconnect", nick: uID }
+    websocket.send(JSON.stringify(message))
+    websocket.close()
+}
+
 function onOpen(evt) {
     document.getElementById("userResponseField").innerHTML = "Trwa łączenie!"
 	document.myform.connectButton.disabled = true;
-	document.myform.disconnectButton.disabled = false;
+    document.myform.disconnectButton.disabled = false;
+    let message = { msg_code: "connect", nick: document.getElementById("userNameImput") }
+    websocket.send(JSON.stringify(message))
 }
 
 function onClose(evt) {
@@ -129,13 +137,15 @@ function handle_Explosion(message){
     //bomb_Explosion.objects_hit = message.objects_hit;
 }
 
-function create_Welcome_Msg(message){
+function handleWelcomeMessage(message){
     boardSize = message.map_size_x;
     uID = message.client_uid;
     bombAmount = message.bombs_amount;
     currentScore = 0;
-    boxAmount = message.box;
-    giftAmount = message.gifts;
+    boxes = JSON.parse(message.box);
+    gifts = message.gifts;
+    SQUARE = GAME_BOARD / boardSize
+    window.setInterval(gameLoop,5)
 }
 
 function disconnect_Player(message){
@@ -152,21 +162,41 @@ function onMessage(evt) {
     // TO DO
     // OBSLUGA PRZYCHODZACYCH POLECEN
     // DUZO ROBOTY!!!
-    let received = JSON.parse(evt.data)
+    let message = JSON.parse(evt.data)
 
-    if(!gameStarted && received.includes("welcome_msg")) {
-        
+    if(!gameStarted && message.msg_code === "welcome_msg" ) {
+        handleWelcomeMessage(message)
+        gameStarted = true
     } else if(gameStarted) {
-        // modyfikacja zmiennych z danymi na temat boxów i graczy
+        if(message.msg_code === "") {
+            
+        }
     }
 
-    console.log(evt.data)
+    //console.log(message.box)
+    //console.log("\n\n")
 }
 
 // TO DO
 function doSend(message) {
     websocket.send(message);
   }
+
+function drawBoxes() {
+    let boxImage = new Image(SQUARE,SQUARE)
+    boxImage.onload = function() {
+
+        for (let i in boxes) {
+            if (boxes.hasOwnProperty(i)) {
+                let posX = boxes[i].pos[0]
+                let posY = boxes[i].pos[1]
+                ctx.drawImage(boxImage, LEFT_LINE + SQUARE + posX*SQUARE, UPPER_LINE + SQUARE + posY*SQUARE, this.width, this.height)
+            }
+        }
+
+    }
+    boxImage.src = "sprites/box.png"
+}
 
 // RYSUJE TYLKO 1 GRACZA, TRZEBA ZMIENIC
 function drawPlayers() {
@@ -200,7 +230,6 @@ function drawPlayers() {
             player4Img.src = "sprites/player1.png"
         }
 }
-
 
 // RYSUJE TŁO
 
