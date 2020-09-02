@@ -68,7 +68,7 @@ document.addEventListener('keydown', function(event) {
 function gameLoop() {
     
     //test
-    var obj = JSON.parse('{"map_size_x":11, "map_size_y": 11, "client_uid": 77, "bombs_amount": 3, "current_score": 0, "box": 0, "gifts": 0}');
+    var obj = JSON.parse('{"msg_code": "welcome_msg", "map_size_x":11, "map_size_y": 11, "client_uid": 77, "bombs_amount": 3, "current_score": 0, "box": 0, "gifts": 0}');
     create_Welcome_Msg(obj);
     SQUARE = GAME_BOARD / boardSize
 
@@ -139,7 +139,6 @@ function create_Welcome_Msg(message){
 }
 
 function disconnect_Player(message){
-    var elo = message.nick;
     for(var i = 0; i < 4; i++){
         if(playersNicks[i] == message.nick){
             playersPos[i] = [message.x, message.y];
