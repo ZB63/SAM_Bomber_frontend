@@ -53,6 +53,8 @@ document.addEventListener('keydown', function(event) {
     let key = event.which
     if(key === 37) {
         playersPos[0][0] = playersPos[0][0] - 1
+        var objj = JSON.parse('{"message_code": "player_pos", "nick": "stefan", "x": -1, "y": -1}');
+        disconnect_Player(objj);
     } else if(key === 39) {
         playersPos[0][0] = playersPos[0][0] + 1
     } else if(key === 38) {
@@ -71,6 +73,7 @@ function gameLoop() {
 
     drawBackground(boardSize,boardSize)
     drawPlayers()
+
 }
 
 function onConnect() {
@@ -103,7 +106,7 @@ function onError(evt) {
 function pos_Msg(message){
     for(var i = 0; i < 4; i++){
         if(playersNicks[i] == message.nick)
-            playersPos[i] = playersPos[message.x][message.y];
+            playersPos[i] = [message.x, message.y];
     }
 }
 
@@ -122,7 +125,7 @@ function handle_Explosion(message){
     bomb_Explosion.uid = message.bomb_uid;
     bomb_Explosion.x_range = message.x_range;
     bomb_Explosion.y_range = message.y_range;
-    bomb_Explosion.objects_hit = message.objects_hit;
+    //bomb_Explosion.objects_hit = message.objects_hit;
 }
 
 function create_Welcome_Msg(message){
@@ -135,10 +138,12 @@ function create_Welcome_Msg(message){
 }
 
 function disconnect_Player(message){
+    var elo = message.nick;
     for(var i = 0; i < 4; i++){
-        if(playersNicks[i] == message.nick)
-            playersPos[i] = playersPos[message.x][message.y];
-        playersNicks[i] = null;
+        if(playersNicks[i] == message.nick){
+            playersPos[i] = [message.x, message.y];
+            playersNicks[i] = null;
+        }
     }
 }
 
