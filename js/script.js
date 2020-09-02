@@ -53,6 +53,7 @@ document.addEventListener('keydown', function(event) {
     let key = event.which
     if(key === 37) {
         playersPos[0][0] = playersPos[0][0] - 1
+        //test, jak pojdziemy w lewo to przeniesie nas w rog i usunie gracza
         var objj = JSON.parse('{"message_code": "player_pos", "nick": "stefan", "x": -1, "y": -1}');
         disconnect_Player(objj);
     } else if(key === 39) {
