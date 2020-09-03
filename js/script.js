@@ -52,16 +52,17 @@ let bomb_Explosion = {
 document.addEventListener('keydown', function(event) {
     let key = event.which
     if(key === 37) {
-        playersPos[0][0] = playersPos[0][0] - 1
-        //test, jak pojdziemy w lewo to przeniesie nas w rog i usunie gracza
-        var objj = JSON.parse('{"message_code": "player_pos", "nick": "stolec", "x": -1, "y": -1}');
-        disconnect_Player(objj);
+        let message = { msg_code: "player_move", x: playersPos[0][0] - 1, y: playersPos[0][1], uid: uID }
+        websocket.send(JSON.stringify(message))
     } else if(key === 39) {
-        playersPos[0][0] = playersPos[0][0] + 1
+        let message = { msg_code: "player_move", x: playersPos[0][0] + 1, y: playersPos[0][1], uid: uID }
+        websocket.send(JSON.stringify(message))
     } else if(key === 38) {
-        playersPos[0][1] = playersPos[0][1] - 1
+        let message = { msg_code: "player_move", x: playersPos[0][0], y: playersPos[0][1] - 1, uid: uID }
+        websocket.send(JSON.stringify(message))
     } else if(key === 40) {
-        playersPos[0][1] = playersPos[0][1] + 1
+        let message = { msg_code: "player_move", x: playersPos[0][0], y: playersPos[0][1] + 1, uid: uID }
+        websocket.send(JSON.stringify(message))
     }
 })
 
@@ -70,7 +71,11 @@ document.addEventListener('keydown', function(event) {
 function gameLoop() {
     
     //test
+    game()
+    
+}
 
+function game() {
     drawBackground(boardSize,boardSize)
     drawPlayers()
     drawBoxes()
@@ -95,8 +100,12 @@ function onOpen(evt) {
     document.getElementById("userResponseField").innerHTML = "Trwa łączenie!"
 	document.myform.connectButton.disabled = true;
     document.myform.disconnectButton.disabled = false;
+    console.log("POLACZONO")
+
+
     let message = { msg_code: "connect", nick: document.getElementById("userNameImput") }
     websocket.send(JSON.stringify(message))
+
 }
 
 function onClose(evt) {
@@ -148,6 +157,19 @@ function handleWelcomeMessage(message){
     window.setInterval(gameLoop,5)
 }
 
+function handlePlayerPos(message) {
+    for(let i=0;i<playersPos.length;i++) {
+        console.log(message.nick)
+        console.log(playersNicks[i])
+        console.log("\n")
+        if(message.nick === playersNicks[i]) {
+            playersPos[i][0] = message.x
+            playersPos[i][1] = message.y
+        }
+    }
+}
+
+// nie jestem pewien do czego to sluzy
 function disconnect_Player(message){
     for(var i = 0; i < 4; i++){
         if(playersNicks[i] == message.nick){
@@ -163,18 +185,17 @@ function onMessage(evt) {
     // OBSLUGA PRZYCHODZACYCH POLECEN
     // DUZO ROBOTY!!!
     let message = JSON.parse(evt.data)
-
-    if(!gameStarted && message.msg_code === "welcome_msg" ) {
+    console.log(message)
+    if(message.msg_code === "welcome_msg" ) {
         handleWelcomeMessage(message)
-        gameStarted = true
-    } else if(gameStarted) {
-        if(message.msg_code === "") {
-            
-        }
+    } else if(message.msg_code === "player_pos") {
+        handlePlayerPos(message)
+        console.log(playersPos[0][0])
     }
 
     //console.log(message.box)
     //console.log("\n\n")
+    //game()
 }
 
 // TO DO
@@ -190,7 +211,7 @@ function drawBoxes() {
             if (boxes.hasOwnProperty(i)) {
                 let posX = boxes[i].pos[0]
                 let posY = boxes[i].pos[1]
-                ctx.drawImage(boxImage, LEFT_LINE + SQUARE + posX*SQUARE, UPPER_LINE + SQUARE + posY*SQUARE, this.width, this.height)
+                ctx.drawImage(boxImage, LEFT_LINE + posX*SQUARE, UPPER_LINE + posY*SQUARE, this.width, this.height)
             }
         }
 
@@ -204,28 +225,28 @@ function drawPlayers() {
         if(playersNicks[0] != null){
             let player1Img = new Image(SQUARE,SQUARE)
             player1Img.onload = function() {
-                ctx.drawImage(player1Img, LEFT_LINE + SQUARE + playersPos[0][0]*SQUARE, UPPER_LINE + SQUARE + playersPos[0][1]*SQUARE, this.width, this.height)
+                ctx.drawImage(player1Img, LEFT_LINE + playersPos[0][0]*SQUARE, UPPER_LINE + playersPos[0][1]*SQUARE, this.width, this.height)
             }
             player1Img.src = "sprites/player1.png"
         }
         if(playersNicks[1] != null){
             let player2Img = new Image(SQUARE,SQUARE)
             player2Img.onload = function() {
-                ctx.drawImage(player2Img, LEFT_LINE + SQUARE + playersPos[1][0]*SQUARE, UPPER_LINE + SQUARE + playersPos[1][1]*SQUARE, this.width, this.height)
+                ctx.drawImage(player2Img, LEFT_LINE + playersPos[1][0]*SQUARE, UPPER_LINE + playersPos[1][1]*SQUARE, this.width, this.height)
             }
             player2Img.src = "sprites/player1.png"
         }
         if(playersNicks[2] != null){
             let player3Img = new Image(SQUARE,SQUARE)
             player3Img.onload = function() {
-                ctx.drawImage(player3Img, LEFT_LINE + SQUARE + playersPos[2][0]*SQUARE, UPPER_LINE + SQUARE + playersPos[2][1]*SQUARE, this.width, this.height)
+                ctx.drawImage(player3Img, LEFT_LINE + playersPos[2][0]*SQUARE, UPPER_LINE + playersPos[2][1]*SQUARE, this.width, this.height)
             }
             player3Img.src = "sprites/player1.png"
         }
         if(playersNicks[3] != null){
             let player4Img = new Image(SQUARE,SQUARE)
             player4Img.onload = function() {
-                ctx.drawImage(player4Img, LEFT_LINE + SQUARE + playersPos[3][0]*SQUARE, UPPER_LINE + SQUARE + playersPos[3][1]*SQUARE, this.width, this.height)
+                ctx.drawImage(player4Img, LEFT_LINE + playersPos[3][0]*SQUARE, UPPER_LINE + playersPos[3][1]*SQUARE, this.width, this.height)
             }
             player4Img.src = "sprites/player1.png"
         }
