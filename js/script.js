@@ -90,7 +90,6 @@ function onConnect() {
 }
 
 function onDisconnect() {
-    console.log("UID:" + uID)
     let message = { msg_code: "disconnect", nick: uID }
     websocket.send(JSON.stringify(message))
     websocket.close()
@@ -102,10 +101,8 @@ function onOpen(evt) {
     document.myform.disconnectButton.disabled = false;
     console.log("POLACZONO")
 
-
     let message = { msg_code: "connect", nick: document.getElementById("userNameImput") }
     websocket.send(JSON.stringify(message))
-
 }
 
 function onClose(evt) {
@@ -159,9 +156,6 @@ function handleWelcomeMessage(message){
 
 function handlePlayerPos(message) {
     for(let i=0;i<playersPos.length;i++) {
-        console.log(message.nick)
-        console.log(playersNicks[i])
-        console.log("\n")
         if(message.nick === playersNicks[i]) {
             playersPos[i][0] = message.x
             playersPos[i][1] = message.y
@@ -190,7 +184,6 @@ function onMessage(evt) {
         handleWelcomeMessage(message)
     } else if(message.msg_code === "player_pos") {
         handlePlayerPos(message)
-        console.log(playersPos[0][0])
     }
 
     //console.log(message.box)
