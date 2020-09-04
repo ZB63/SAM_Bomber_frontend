@@ -14,6 +14,7 @@ let bombAmount;
 let currentScore;
 let boxes;
 let gifts;
+let myNick;
 
 let SQUARE = GAME_BOARD / boardSize
 
@@ -21,64 +22,51 @@ let c = document.getElementById("myCanvas")
 let ctx = c.getContext("2d")
 let websocket;
 
-let playersPos = [
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0]
-  ];
+let players = [
+    { nick: null, x: -1 , y: -1 },
+    { nick: null, x: -1 , y: -1 },
+    { nick: null, x: -1 , y: -1 },
+    { nick: null, x: -1 , y: -1 }
+]
 
-let playersNicks = [
-    "stefan",
-    "stolec",
-    null,
-    null
-];
+// bomby mozna dodawac do listy za pomoca bombs.push({ uid: 2137, x: -1 , y: -1 })
+// bomby mozna usuwac z listy za pomoca bombs.splice(indexBombyDoWywalenia, 1)
 
-let bombs = {
-    uid : null,
-    x : null,
-    y : null
-}
+let bombs = [
+    //{ uid: 2137, x: 3 , y: 3 }
+]
 
-// czy to aby na pewno jest potrzebne?
-let bomb_Explosion = {
-    uid : null,
-    x_range : null,
-    y_range : null,
-    objects_hit : null
-}
+let explosions = [
+    //{ uid : 2137, x_range : 1, y_range : 1, objects_hit : null }
+]
 
 document.addEventListener('keydown', function(event) {
     let key = event.which
     if(key === 37) {
-        let message = { msg_code: "player_move", x: playersPos[0][0] - 1, y: playersPos[0][1], uid: uID }
+        let message = { msg_code: "player_move", x: players[0].x - 1, y: players[0].y, uid: uID }
         websocket.send(JSON.stringify(message))
     } else if(key === 39) {
-        let message = { msg_code: "player_move", x: playersPos[0][0] + 1, y: playersPos[0][1], uid: uID }
+        let message = { msg_code: "player_move", x: players[0].x + 1, y: players[0].y, uid: uID }
         websocket.send(JSON.stringify(message))
     } else if(key === 38) {
-        let message = { msg_code: "player_move", x: playersPos[0][0], y: playersPos[0][1] - 1, uid: uID }
+        let message = { msg_code: "player_move", x: players[0].x, y: players[0].y - 1, uid: uID }
         websocket.send(JSON.stringify(message))
     } else if(key === 40) {
-        let message = { msg_code: "player_move", x: playersPos[0][0], y: playersPos[0][1] + 1, uid: uID }
+        let message = { msg_code: "player_move", x: players[0].x, y: players[0].y + 1, uid: uID }
+        websocket.send(JSON.stringify(message))
+    } else if(key === 32) {
+        // SPACJA - PODKLADANIE BOMBY
+        let message = { msg_code: "player_plant_bomb", uid: uID }
         websocket.send(JSON.stringify(message))
     }
 })
 
-//var obj = JSON.parse('{"msg_code": "welcome_msg", "map_size_x":11, "map_size_y": 11, "client_uid": 77, "bombs_amount": 3, "current_score": 0, "box": 0, "gifts": 0}');
-
-function gameLoop() {
-    
-    //test
-    game()
-    
-}
-
 function game() {
     drawBackground(boardSize,boardSize)
-    drawPlayers()
     drawBoxes()
+    drawBombs()
+    drawExplosion()
+    drawPlayers()
 }
 
 function onConnect() {
@@ -90,7 +78,7 @@ function onConnect() {
 }
 
 function onDisconnect() {
-    let message = { msg_code: "disconnect", nick: uID }
+    let message = { msg_code: "disconnect", uid: uID }
     websocket.send(JSON.stringify(message))
     websocket.close()
 }
@@ -99,9 +87,8 @@ function onOpen(evt) {
     document.getElementById("userResponseField").innerHTML = "Trwa łączenie!"
 	document.myform.connectButton.disabled = true;
     document.myform.disconnectButton.disabled = false;
-    console.log("POLACZONO")
-
-    let message = { msg_code: "connect", nick: document.getElementById("userNameImput") }
+    myNick = document.getElementById("userNameImput").value
+    let message = { msg_code: "connect", nick: document.getElementById("userNameImput").value }
     websocket.send(JSON.stringify(message))
 }
 
@@ -118,24 +105,11 @@ function onError(evt) {
 	document.myform.disconnectButton.disabled = true;
 }
 
-function pos_Msg(message){
-    for(var i = 0; i < 4; i++){
-        if(playersNicks[i] == message.nick)
-            playersPos[i] = [message.x, message.y];
-    }
-}
-
-function bomb_Amount_Msg(message){
-    bombAmount = message.amount;
-}
-
-function bomb_Planted_Msg(message){
-    bomb.uid = message.bomb_uid;
-    bomb.x = message.x;
-    bomb.y = message.y;
-    //...
-}
-
+// UWAGA !!!!!!!!
+// ...
+// ...
+// ...
+// DO MODYFIKACJI
 function handle_Explosion(message){
     bomb_Explosion.uid = message.bomb_uid;
     bomb_Explosion.x_range = message.x_range;
@@ -151,55 +125,136 @@ function handleWelcomeMessage(message){
     boxes = JSON.parse(message.box);
     gifts = message.gifts;
     SQUARE = GAME_BOARD / boardSize
-    window.setInterval(gameLoop,5)
+    //window.setInterval(gameLoop,5)
 }
 
 function handlePlayerPos(message) {
-    for(let i=0;i<playersPos.length;i++) {
-        if(message.nick === playersNicks[i]) {
-            playersPos[i][0] = message.x
-            playersPos[i][1] = message.y
+    for(let i=0;i<players.length;i++) {
+        if(message.nick === players[i].nick) {
+            players[i].x = message.x
+            players[i].y = message.y
+            return
         }
     }
+
+    // jezeli nie odnajdziemy gracza na liscie, to go do niej dodajemy
+    for(let i=0;i<players.length;i++) {
+        if(players[i].nick === null) {
+            players[i].nick = message.nick
+            players[i].x = message.x
+            players[i].y = message.y
+            return
+        }
+    }
+}
+
+function handleCurrentScore(message) {
+    currentScore = message.score
+}
+
+function handleBombAmount(message) {
+    bombAmount = message.amount
+}
+
+function handleBombHasBeenPlanted(message) {
+    bombs.push({ uid: message.bomb_uid, x: message.x , y: message.y })
 }
 
 // nie jestem pewien do czego to sluzy
-function disconnect_Player(message){
-    for(var i = 0; i < 4; i++){
-        if(playersNicks[i] == message.nick){
-            playersPos[i] = [message.x, message.y];
-            playersNicks[i] = null;
-        }
-    }
-}
+// function disconnect_Player(message){
+//     for(var i = 0; i < 4; i++){
+//         if(playersNicks[i] == message.nick){
+//             playersPos[i] = [message.x, message.y];
+//             playersNicks[i] = null;
+//         }
+//     }
+// }
 
 
 function onMessage(evt) {
-    // TO DO
-    // OBSLUGA PRZYCHODZACYCH POLECEN
-    // DUZO ROBOTY!!!
+
     let message = JSON.parse(evt.data)
-    console.log(message)
     if(message.msg_code === "welcome_msg" ) {
         handleWelcomeMessage(message)
     } else if(message.msg_code === "player_pos") {
         handlePlayerPos(message)
+    } else if(message.msg_code === "current score") {
+        handleCurrentScore(message)
+    } else if(message.msg_code === "bomb_amount") {
+        handleBombAmount(message)
+    } else if(message.msg_code === "Bomb has been planted") {
+        handleBombHasBeenPlanted(message)
     }
 
-    //console.log(message.box)
-    //console.log("\n\n")
-    //game()
+    game()
 }
 
-// TO DO
-function doSend(message) {
-    websocket.send(message);
-  }
+// RYSUJE BOMBY
+function drawBombs() {
+    let bombImage = new Image(SQUARE,SQUARE)
+    bombImage.onload = function() {
+        for (let i in bombs) {
+            if (bombs.hasOwnProperty(i)) {
+                let posX = bombs[i].x
+                let posY = bombs[i].y
+                ctx.drawImage(bombImage, LEFT_LINE + posX*SQUARE, UPPER_LINE + posY*SQUARE, this.width, this.height)
+            }
+        }
 
+    }
+    bombImage.src = "sprites/bomb.png"
+}
+
+// RYSUJE WYBUCHY
+function drawExplosion() {
+    let explosionImage = new Image(SQUARE,SQUARE)
+    explosionImage.onload = function() {
+        for(let i=0;i<explosions.length;i++) {
+            let bombUid = explosions[i].uid
+            let posX = 0
+            let posY = 0
+            for(let j=0;j<bombs.length;j++) {
+                if(bombs[j].uid === bombUid) {
+                    posX = bombs[j].x
+                    posY = bombs[j].y
+                    break
+                }
+            }
+            
+            ctx.drawImage(explosionImage, LEFT_LINE + posX*SQUARE, UPPER_LINE + posY*SQUARE, this.width, this.height)
+
+            // eksplozja musi sie zatrzymac na pilarach w pionie
+            if(posX % 2 == 1) {
+                for(let j=1;j<=explosions[i].y_range;j++) {
+                    if(UPPER_LINE + posY*SQUARE + j*SQUARE < UPPER_LINE + (boardSize-1) * SQUARE) {
+                        ctx.drawImage(explosionImage, LEFT_LINE + posX*SQUARE, UPPER_LINE + posY*SQUARE + j*SQUARE, this.width, this.height)
+                    }
+                    if(UPPER_LINE + posY*SQUARE - j*SQUARE > UPPER_LINE) {
+                        ctx.drawImage(explosionImage, LEFT_LINE + posX*SQUARE, UPPER_LINE + posY*SQUARE - j*SQUARE, this.width, this.height)
+                    }
+                }
+            }
+            
+            // eksplozja musi sie zatrzymac w poziomie
+            if(posY % 2 == 1) {
+                for(let j=1;j<=explosions[i].x_range;j++) {
+                    if(LEFT_LINE + posX*SQUARE + j*SQUARE < LEFT_LINE + (boardSize-1)* SQUARE) {
+                        ctx.drawImage(explosionImage, LEFT_LINE + posX*SQUARE + j*SQUARE, UPPER_LINE + posY*SQUARE, this.width, this.height)
+                    }
+                    if(LEFT_LINE + posX*SQUARE - j*SQUARE > LEFT_LINE) {
+                        ctx.drawImage(explosionImage, LEFT_LINE + posX*SQUARE - j*SQUARE, UPPER_LINE + posY*SQUARE, this.width, this.height)
+                    }
+                }
+            }
+        }
+    }
+    explosionImage.src = "sprites/explosion.png"
+}
+
+// RYSUJE BOXY DO ZNISZCZENIA
 function drawBoxes() {
     let boxImage = new Image(SQUARE,SQUARE)
     boxImage.onload = function() {
-
         for (let i in boxes) {
             if (boxes.hasOwnProperty(i)) {
                 let posX = boxes[i].pos[0]
@@ -215,31 +270,31 @@ function drawBoxes() {
 // RYSUJE TYLKO 1 GRACZA, TRZEBA ZMIENIC
 function drawPlayers() {
 
-        if(playersNicks[0] != null){
+        if(players[0].nick != null){
             let player1Img = new Image(SQUARE,SQUARE)
             player1Img.onload = function() {
-                ctx.drawImage(player1Img, LEFT_LINE + playersPos[0][0]*SQUARE, UPPER_LINE + playersPos[0][1]*SQUARE, this.width, this.height)
+                ctx.drawImage(player1Img, LEFT_LINE + players[0].x*SQUARE, UPPER_LINE + players[0].y*SQUARE, this.width, this.height)
             }
             player1Img.src = "sprites/player1.png"
         }
-        if(playersNicks[1] != null){
+        if(players[1].nick != null){
             let player2Img = new Image(SQUARE,SQUARE)
             player2Img.onload = function() {
-                ctx.drawImage(player2Img, LEFT_LINE + playersPos[1][0]*SQUARE, UPPER_LINE + playersPos[1][1]*SQUARE, this.width, this.height)
+                ctx.drawImage(player2Img, LEFT_LINE + players[1].x*SQUARE, UPPER_LINE + players[1].y*SQUARE, this.width, this.height)
             }
             player2Img.src = "sprites/player1.png"
         }
-        if(playersNicks[2] != null){
+        if(players[2].nick != null){
             let player3Img = new Image(SQUARE,SQUARE)
             player3Img.onload = function() {
-                ctx.drawImage(player3Img, LEFT_LINE + playersPos[2][0]*SQUARE, UPPER_LINE + playersPos[2][1]*SQUARE, this.width, this.height)
+                ctx.drawImage(player3Img, LEFT_LINE + players[2].x*SQUARE, UPPER_LINE + players[2].y*SQUARE, this.width, this.height)
             }
             player3Img.src = "sprites/player1.png"
         }
-        if(playersNicks[3] != null){
+        if(players[3].nick != null){
             let player4Img = new Image(SQUARE,SQUARE)
             player4Img.onload = function() {
-                ctx.drawImage(player4Img, LEFT_LINE + playersPos[3][0]*SQUARE, UPPER_LINE + playersPos[3][1]*SQUARE, this.width, this.height)
+                ctx.drawImage(player4Img, LEFT_LINE + players[3].x*SQUARE, UPPER_LINE + players[3].y*SQUARE, this.width, this.height)
             }
             player4Img.src = "sprites/player1.png"
         }
