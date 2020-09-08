@@ -269,7 +269,8 @@ function drawPlayers() {
           img.onload = function() {
             ctx.drawImage(img, LEFT_LINE + player.x * SQUARE, UPPER_LINE + player.y * SQUARE, this.width, this.height)
           }
-          img.src = "sprites/player1.png"; // or `sprites/${player.image}`;
+          img.src = "sprites/player1.png"; 
+          //jak bedziemy miec wszystkie zdjecia : `sprites/${player.image}`;
         }
       });
   }
