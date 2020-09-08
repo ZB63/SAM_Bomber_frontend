@@ -162,6 +162,15 @@ function handleBombExploded(message){
         objects_hit: JSON.parse(message.objects_hit) 
     })
     bombs.splice(message.uid, 1);
+    
+    //zmienie to jeszcze
+    objects_hit = JSON.parse(message.objects_hit)
+    var result = boxes.find(objects_hit => {
+        return s = objects_hit.uid;
+    })
+    boxes.splice(s, 1);
+        
+    
 }
 
 
