@@ -15,6 +15,8 @@ let currentScore;
 let boxes;
 let gifts;
 let myNick;
+let start = []; 
+let end = [];
 
 let SQUARE = GAME_BOARD / boardSize
 
@@ -65,8 +67,16 @@ function game() {
     drawBackground(boardSize,boardSize)
     drawBoxes()
     drawBombs()
-    drawExplosion()
+    drawExplosions()
+    clearExplosions()
     drawPlayers()
+}
+
+function deleted(){
+    for ( let i in explosions, bombs){
+        explosions.splice(i, 1);
+        bombs.splice(i, 1);
+    }
 }
 
 function onConnect() {
@@ -159,20 +169,22 @@ function handleBombExploded(message){
         uid: message.bomb_uid,
         x_range: message.x_range, 
         y_range: message.y_range,
-        objects_hit: JSON.parse(message.objects_hit) 
+        objects_hit: JSON.parse(message.objects_hit), 
+        timeStarted: new Date()
     })
-    bombs.splice(message.uid, 1);
-    
-    //zmienie to jeszcze
-    objects_hit = JSON.parse(message.objects_hit)
-    var result = boxes.find(objects_hit => {
-        return s = objects_hit.uid;
-    })
-    boxes.splice(s, 1);
-        
-    
 }
 
+function clearExplosions(){
+    endTime = new Date();
+        for (let i = 0; i < explosions.length; i++){
+            timeDiff = (endTime - explosions[i].timeStarted)/1000;
+            if (timeDiff > 1) {
+                explosions.splice(i, 1);
+                bombs.splice(i, 1);
+                break;
+            }
+        }
+}
 
 function onMessage(evt) {
 
@@ -210,13 +222,13 @@ function drawBombs() {
 }
 
 // RYSUJE WYBUCHY
-function drawExplosion() {
+function drawExplosions() {
     let explosionImage = new Image(SQUARE,SQUARE)
     explosionImage.onload = function() {
         for(let i=0;i<explosions.length;i++) {
             let bombUid = explosions[i].uid
             let posX = 0
-            let posY = 0
+            let posY = 0 
             for(let j=0;j<bombs.length;j++) {
                 if(bombs[j].uid === bombUid) {
                     posX = bombs[j].x
@@ -254,6 +266,7 @@ function drawExplosion() {
     }
     explosionImage.src = "sprites/explosion.png"
 }
+
 
 // RYSUJE BOXY DO ZNISZCZENIA
 function drawBoxes() {
