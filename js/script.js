@@ -8,19 +8,21 @@ const RIGHT_LINE = WIDTH*(13/16)
 const GAME_BOARD = HEIGHT-UPPER_LINE // == RIGHT_LINE - LEFT_LINE
 
 let gameStarted = false
-let boardSize = 11 // Musi byc nieparzyste
-let uID;
-let bombAmount;
-let currentScore;
-let boxes;
-let gifts;
-let myNick;
-
+let boardSize // Musi byc nieparzyste
 let SQUARE = GAME_BOARD / boardSize
+let bombs = [] //{ uid: 2137, x: 3 , y: 3 }
+let explosions = [] //{ uid : 2137, x_range : 1, y_range : 1, objects_hit : null }
 
 let c = document.getElementById("myCanvas")
 let ctx = c.getContext("2d")
 let websocket;
+
+let uID;
+let myNick;
+let currentScore;
+let bombAmount;
+let boxes;
+let gifts;
 
 let players = [
     { nick: null, x: -1 , y: -1 },
@@ -31,14 +33,6 @@ let players = [
 
 // bomby mozna dodawac do listy za pomoca bombs.push({ uid: 2137, x: -1 , y: -1 })
 // bomby mozna usuwac z listy za pomoca bombs.splice(indexBombyDoWywalenia, 1)
-
-let bombs = [
-    //{ uid: 2137, x: 3 , y: 3 }
-]
-
-let explosions = [
-    //{ uid : 2137, x_range : 1, y_range : 1, objects_hit : null }
-]
 
 document.addEventListener('keydown', function(event) {
     let key = event.which
@@ -65,7 +59,8 @@ function game() {
     drawBackground(boardSize,boardSize)
     drawBoxes()
     drawBombs()
-    drawExplosion()
+    drawExplosions()
+    clearExplosions()
     drawPlayers()
 }
 
@@ -110,12 +105,6 @@ function onError(evt) {
 // ...
 // ...
 // DO MODYFIKACJI
-function handle_Explosion(message){
-    bomb_Explosion.uid = message.bomb_uid;
-    bomb_Explosion.x_range = message.x_range;
-    bomb_Explosion.y_range = message.y_range;
-    //bomb_Explosion.objects_hit = message.objects_hit;
-}
 
 function handleWelcomeMessage(message){
     boardSize = message.map_size_x;
@@ -160,16 +149,35 @@ function handleBombHasBeenPlanted(message) {
     bombs.push({ uid: message.bomb_uid, x: message.x , y: message.y })
 }
 
-// nie jestem pewien do czego to sluzy
-// function disconnect_Player(message){
-//     for(var i = 0; i < 4; i++){
-//         if(playersNicks[i] == message.nick){
-//             playersPos[i] = [message.x, message.y];
-//             playersNicks[i] = null;
-//         }
-//     }
-// }
+function handleBombExploded(message){
+    explosions.push({ 
+        uid: message.bomb_uid,
+        x_range: message.x_range, 
+        y_range: message.y_range,
+        objects_hit: JSON.parse(message.objects_hit), 
+        timeStarted: new Date()
+    })
+    objects_hit = JSON.parse(message.objects_hit);
+    for(let i = 0; i < boxes.length; i++){
+        for(let j = 0; j < objects_hit.length; j++){
+            if(boxes[i].uid === objects_hit[j].uid){
+                boxes.splice(i, 1);
+            }
+        }
+    }
+}
 
+function clearExplosions(){
+    endTime = new Date();
+    for (let i = 0; i < explosions.length; i++){
+        timeDiff = (endTime - explosions[i].timeStarted)/1000;
+        if (timeDiff > 0.1) {
+            explosions.splice(i, 1);
+            bombs.splice(i, 1);
+            break;
+        }
+    }
+}
 
 function onMessage(evt) {
 
@@ -184,6 +192,8 @@ function onMessage(evt) {
         handleBombAmount(message)
     } else if(message.msg_code === "Bomb has been planted") {
         handleBombHasBeenPlanted(message)
+    } else if(message.msg_code === "Bomb exploded"){
+        handleBombExploded(message)
     }
 
     game()
@@ -200,19 +210,18 @@ function drawBombs() {
                 ctx.drawImage(bombImage, LEFT_LINE + posX*SQUARE, UPPER_LINE + posY*SQUARE, this.width, this.height)
             }
         }
-
     }
     bombImage.src = "sprites/bomb.png"
 }
 
 // RYSUJE WYBUCHY
-function drawExplosion() {
+function drawExplosions() {
     let explosionImage = new Image(SQUARE,SQUARE)
     explosionImage.onload = function() {
         for(let i=0;i<explosions.length;i++) {
             let bombUid = explosions[i].uid
             let posX = 0
-            let posY = 0
+            let posY = 0 
             for(let j=0;j<bombs.length;j++) {
                 if(bombs[j].uid === bombUid) {
                     posX = bombs[j].x
@@ -251,6 +260,7 @@ function drawExplosion() {
     explosionImage.src = "sprites/explosion.png"
 }
 
+
 // RYSUJE BOXY DO ZNISZCZENIA
 function drawBoxes() {
     let boxImage = new Image(SQUARE,SQUARE)
@@ -262,43 +272,22 @@ function drawBoxes() {
                 ctx.drawImage(boxImage, LEFT_LINE + posX*SQUARE, UPPER_LINE + posY*SQUARE, this.width, this.height)
             }
         }
-
     }
     boxImage.src = "sprites/box.png"
 }
 
-// RYSUJE TYLKO 1 GRACZA, TRZEBA ZMIENIC
 function drawPlayers() {
-
-        if(players[0].nick != null){
-            let player1Img = new Image(SQUARE,SQUARE)
-            player1Img.onload = function() {
-                ctx.drawImage(player1Img, LEFT_LINE + players[0].x*SQUARE, UPPER_LINE + players[0].y*SQUARE, this.width, this.height)
-            }
-            player1Img.src = "sprites/player1.png"
+    players.forEach(player => {
+        if (player.nick != null) {
+          let img = new Image(SQUARE, SQUARE)
+          img.onload = function() {
+            ctx.drawImage(img, LEFT_LINE + player.x * SQUARE, UPPER_LINE + player.y * SQUARE, this.width, this.height)
+          }
+          img.src = "sprites/player1.png"; 
+          //jak bedziemy miec wszystkie zdjecia : `sprites/${player.image}`;
         }
-        if(players[1].nick != null){
-            let player2Img = new Image(SQUARE,SQUARE)
-            player2Img.onload = function() {
-                ctx.drawImage(player2Img, LEFT_LINE + players[1].x*SQUARE, UPPER_LINE + players[1].y*SQUARE, this.width, this.height)
-            }
-            player2Img.src = "sprites/player1.png"
-        }
-        if(players[2].nick != null){
-            let player3Img = new Image(SQUARE,SQUARE)
-            player3Img.onload = function() {
-                ctx.drawImage(player3Img, LEFT_LINE + players[2].x*SQUARE, UPPER_LINE + players[2].y*SQUARE, this.width, this.height)
-            }
-            player3Img.src = "sprites/player1.png"
-        }
-        if(players[3].nick != null){
-            let player4Img = new Image(SQUARE,SQUARE)
-            player4Img.onload = function() {
-                ctx.drawImage(player4Img, LEFT_LINE + players[3].x*SQUARE, UPPER_LINE + players[3].y*SQUARE, this.width, this.height)
-            }
-            player4Img.src = "sprites/player1.png"
-        }
-}
+      });
+  }
 
 // RYSUJE TŁO
 
@@ -354,7 +343,6 @@ function drawBackground(sizeX, sizeY) {
                 ctx.drawImage(wall, posX, posY, this.width, this.height)
             }
         }
-
     }
     wall.src = "sprites/wall.png"
 }
