@@ -8,21 +8,21 @@ const RIGHT_LINE = WIDTH*(13/16)
 const GAME_BOARD = HEIGHT-UPPER_LINE // == RIGHT_LINE - LEFT_LINE
 
 let gameStarted = false
-let boardSize = 11 // Musi byc nieparzyste
-let uID;
-let bombAmount;
-let currentScore;
-let boxes;
-let gifts;
-let myNick;
-let start = []; 
-let end = [];
-
+let boardSize // Musi byc nieparzyste
 let SQUARE = GAME_BOARD / boardSize
+let bombs = [] //{ uid: 2137, x: 3 , y: 3 }
+let explosions = [] //{ uid : 2137, x_range : 1, y_range : 1, objects_hit : null }
 
 let c = document.getElementById("myCanvas")
 let ctx = c.getContext("2d")
 let websocket;
+
+let uID;
+let myNick;
+let currentScore;
+let bombAmount;
+let boxes;
+let gifts;
 
 let players = [
     { nick: null, x: -1 , y: -1 },
@@ -33,14 +33,6 @@ let players = [
 
 // bomby mozna dodawac do listy za pomoca bombs.push({ uid: 2137, x: -1 , y: -1 })
 // bomby mozna usuwac z listy za pomoca bombs.splice(indexBombyDoWywalenia, 1)
-
-let bombs = [
-    //{ uid: 2137, x: 3 , y: 3 }
-]
-
-let explosions = [
-    //{ uid : 2137, x_range : 1, y_range : 1, objects_hit : null }
-]
 
 document.addEventListener('keydown', function(event) {
     let key = event.which
@@ -70,13 +62,6 @@ function game() {
     drawExplosions()
     clearExplosions()
     drawPlayers()
-}
-
-function deleted(){
-    for ( let i in explosions, bombs){
-        explosions.splice(i, 1);
-        bombs.splice(i, 1);
-    }
 }
 
 function onConnect() {
@@ -176,14 +161,14 @@ function handleBombExploded(message){
 
 function clearExplosions(){
     endTime = new Date();
-        for (let i = 0; i < explosions.length; i++){
-            timeDiff = (endTime - explosions[i].timeStarted)/1000;
-            if (timeDiff > 1) {
-                explosions.splice(i, 1);
-                bombs.splice(i, 1);
-                break;
-            }
+    for (let i = 0; i < explosions.length; i++){
+        timeDiff = (endTime - explosions[i].timeStarted)/1000;
+        if (timeDiff > 1) {
+            explosions.splice(i, 1);
+            bombs.splice(i, 1);
+            break;
         }
+    }
 }
 
 function onMessage(evt) {
@@ -279,7 +264,6 @@ function drawBoxes() {
                 ctx.drawImage(boxImage, LEFT_LINE + posX*SQUARE, UPPER_LINE + posY*SQUARE, this.width, this.height)
             }
         }
-
     }
     boxImage.src = "sprites/box.png"
 }
