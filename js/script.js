@@ -157,13 +157,21 @@ function handleBombExploded(message){
         objects_hit: JSON.parse(message.objects_hit), 
         timeStarted: new Date()
     })
+    objects_hit = JSON.parse(message.objects_hit);
+    for(let i = 0; i < objects_hit.length; i++){
+        for(let j = 0; j < boxes.length; j++){
+            if(objects_hit[i].uid === boxes[j].uid){
+                boxes.splice(j, 1);
+            }
+        }
+    }
 }
 
 function clearExplosions(){
     endTime = new Date();
     for (let i = 0; i < explosions.length; i++){
         timeDiff = (endTime - explosions[i].timeStarted)/1000;
-        if (timeDiff > 1) {
+        if (timeDiff > 0.1) {
             explosions.splice(i, 1);
             bombs.splice(i, 1);
             break;
@@ -335,7 +343,6 @@ function drawBackground(sizeX, sizeY) {
                 ctx.drawImage(wall, posX, posY, this.width, this.height)
             }
         }
-
     }
     wall.src = "sprites/wall.png"
 }
