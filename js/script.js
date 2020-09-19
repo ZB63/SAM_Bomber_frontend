@@ -60,8 +60,10 @@ function game() {
     drawBoxes()
     drawBombs()
     drawExplosions()
+    clearBombs()
     clearExplosions()
     drawPlayers()
+    drawScore()
 }
 
 function onConnect() {
@@ -106,7 +108,7 @@ function onError(evt) {
 // ...
 // DO MODYFIKACJI
 
-function handleWelcomeMessage(message){
+function handleWelcomeMessage(message) {
     boardSize = message.map_size_x;
     uID = message.client_uid;
     bombAmount = message.bombs_amount;
@@ -146,10 +148,10 @@ function handleBombAmount(message) {
 }
 
 function handleBombHasBeenPlanted(message) {
-    bombs.push({ uid: message.bomb_uid, x: message.x , y: message.y })
+    bombs.push({ uid: message.bomb_uid, x: message.x , y: message.y ,timeStarted: new Date()})
 }
 
-function handleBombExploded(message){
+function handleBombExploded(message) {
     explosions.push({ 
         uid: message.bomb_uid,
         x_range: message.x_range, 
@@ -167,7 +169,18 @@ function handleBombExploded(message){
     }
 }
 
-function clearExplosions(){
+function clearBombs() {
+    endTime = new Date();
+    for (let i = 0; i < bombs.length; i++){
+        timeDiff = (endTime - bombs[i].timeStarted)/1000;
+        if (timeDiff > 6) {
+            bombs.splice(i, 1);
+            break;
+        }
+    }
+}
+
+function clearExplosions() {
     endTime = new Date();
     for (let i = 0; i < explosions.length; i++){
         timeDiff = (endTime - explosions[i].timeStarted)/1000;
@@ -177,6 +190,10 @@ function clearExplosions(){
             break;
         }
     }
+}
+
+function handleCurrentScore(message) {
+    currentScore = message.score;
 }
 
 function onMessage(evt) {
@@ -192,11 +209,34 @@ function onMessage(evt) {
         handleBombAmount(message)
     } else if(message.msg_code === "Bomb has been planted") {
         handleBombHasBeenPlanted(message)
-    } else if(message.msg_code === "Bomb exploded"){
+    } else if(message.msg_code === "Bomb exploded") {
         handleBombExploded(message)
+    } else if(message.msg_code === "current score") {
+        handleCurrentScore(message)
     }
 
     game()
+}
+
+// RYSUJE SCORE
+function drawScore() {
+    ctx.font='25px Verdana';
+    var hue=0;
+    var direction=1;
+
+    requestAnimationFrame(animate);
+
+    function animate(time){
+    ctx.fillStyle='black';
+    ctx.fillRect(400, 8, 210, 100);
+    ctx.fillStyle='hsl('+hue+',100%,50%)';
+    ctx.fillText('Score : ' + currentScore, 440,40);    
+    ctx.fillText("Bombs : " + bombAmount, 440, 90);
+    requestAnimationFrame(animate);
+    hue+=direction;
+    if(hue>255){direction*=-1;hue=255;}
+    if(hue<0){direction*=-1;hue=0;}
+    }
 }
 
 // RYSUJE BOMBY
