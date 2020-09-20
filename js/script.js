@@ -77,7 +77,6 @@ function onConnect() {
 function onDisconnect() {
     let message = { msg_code: "disconnect", uid: uID }
     websocket.send(JSON.stringify(message))
-    websocket.close()
 }
 
 function onOpen(evt) {
