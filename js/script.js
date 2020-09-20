@@ -60,8 +60,6 @@ function game() {
     drawBoxes()
     drawBombs()
     drawExplosions()
-    clearBombs()
-    clearExplosions()
     drawPlayers()
     drawScore()
 }
@@ -77,6 +75,7 @@ function onConnect() {
 function onDisconnect() {
     let message = { msg_code: "disconnect", uid: uID }
     websocket.send(JSON.stringify(message))
+    websocket.close()
 }
 
 function onOpen(evt) {
@@ -147,7 +146,7 @@ function handleBombAmount(message) {
 }
 
 function handleBombHasBeenPlanted(message) {
-    bombs.push({ uid: message.bomb_uid, x: message.x , y: message.y ,timeStarted: new Date()})
+    bombs.push({ uid: message.bomb_uid, x: message.x , y: message.y })
 }
 
 function handleBombExploded(message) {
@@ -164,29 +163,6 @@ function handleBombExploded(message) {
             if(boxes[i].uid === objects_hit[j].uid){
                 boxes.splice(i, 1);
             }
-        }
-    }
-}
-
-function clearBombs() {
-    endTime = new Date();
-    for (let i = 0; i < bombs.length; i++){
-        timeDiff = (endTime - bombs[i].timeStarted)/1000;
-        if (timeDiff > 6) {
-            bombs.splice(i, 1);
-            break;
-        }
-    }
-}
-
-function clearExplosions() {
-    endTime = new Date();
-    for (let i = 0; i < explosions.length; i++){
-        timeDiff = (endTime - explosions[i].timeStarted)/1000;
-        if (timeDiff > 0.1) {
-            explosions.splice(i, 1);
-            bombs.splice(i, 1);
-            break;
         }
     }
 }
@@ -265,6 +241,7 @@ function drawExplosions() {
                 if(bombs[j].uid === bombUid) {
                     posX = bombs[j].x
                     posY = bombs[j].y
+                    bombs.splice(j, 1);
                     break
                 }
             }
