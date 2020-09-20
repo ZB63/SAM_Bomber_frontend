@@ -60,6 +60,7 @@ function game() {
     drawBoxes()
     drawBombs()
     drawExplosions()
+    clearBombs()
     drawPlayers()
     drawScore()
 }
@@ -146,7 +147,7 @@ function handleBombAmount(message) {
 }
 
 function handleBombHasBeenPlanted(message) {
-    bombs.push({ uid: message.bomb_uid, x: message.x , y: message.y })
+    bombs.push({ uid: message.bomb_uid, x: message.x , y: message.y ,timeStarted: new Date()})
 }
 
 function handleBombExploded(message) {
@@ -163,6 +164,17 @@ function handleBombExploded(message) {
             if(boxes[i].uid === objects_hit[j].uid){
                 boxes.splice(i, 1);
             }
+        }
+    }
+}
+
+function clearBombs() {
+    endTime = new Date();
+    for (let i = 0; i < bombs.length; i++){
+        timeDiff = (endTime - bombs[i].timeStarted)/1000;
+        if (timeDiff > 3) {
+            bombs.splice(i, 1);
+            break;
         }
     }
 }
