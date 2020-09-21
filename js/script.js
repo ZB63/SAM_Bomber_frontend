@@ -61,6 +61,7 @@ function game() {
     drawBombs()
     drawExplosions()
     clearBombs()
+    drawGifts()
     drawPlayers()
     drawScore()
 }
@@ -101,19 +102,13 @@ function onError(evt) {
 	document.myform.disconnectButton.disabled = true;
 }
 
-// UWAGA !!!!!!!!
-// ...
-// ...
-// ...
-// DO MODYFIKACJI
-
 function handleWelcomeMessage(message) {
     boardSize = message.map_size_x;
     uID = message.client_uid;
     bombAmount = message.bombs_amount;
     currentScore = 0;
     boxes = JSON.parse(message.box);
-    gifts = message.gifts;
+    gifts = JSON.parse(message.gifts);
     SQUARE = GAME_BOARD / boardSize
     //window.setInterval(gameLoop,5)
 }
@@ -151,7 +146,7 @@ function handleBombHasBeenPlanted(message) {
 }
 
 function handleBombExploded(message) {
-    explosions.push({ 
+    explosions.push({
         uid: message.bomb_uid,
         x_range: message.x_range, 
         y_range: message.y_range,
@@ -183,6 +178,14 @@ function handleCurrentScore(message) {
     currentScore = message.score;
 }
 
+function handlePickedGift(message) {
+    for(let i=0;i<gifts.length;i++) {
+        if(gifts[i].uid === message.gift_uid) {
+            gifts[i].splice(j, 1);
+        }
+    }
+}
+
 function onMessage(evt) {
 
     let message = JSON.parse(evt.data)
@@ -200,29 +203,30 @@ function onMessage(evt) {
         handleBombExploded(message)
     } else if(message.msg_code === "current score") {
         handleCurrentScore(message)
+    } else if(message.msg_code === "picked_gift") {
+        handlePickedGift(message)
     }
-
     game()
 }
 
 // RYSUJE SCORE
 function drawScore() {
     ctx.font='25px Verdana';
-    var hue=0;
-    var direction=1;
+    let hue=0;
+    let direction=1;
 
     requestAnimationFrame(animate);
 
     function animate(time){
-    ctx.fillStyle='black';
-    ctx.fillRect(400, 8, 210, 100);
-    ctx.fillStyle='hsl('+hue+',100%,50%)';
-    ctx.fillText('Score : ' + currentScore, 440,40);    
-    ctx.fillText("Bombs : " + bombAmount, 440, 90);
-    requestAnimationFrame(animate);
-    hue+=direction;
-    if(hue>255){direction*=-1;hue=255;}
-    if(hue<0){direction*=-1;hue=0;}
+        ctx.fillStyle='black';
+        ctx.fillRect(400, 8, 210, 100);
+        ctx.fillStyle='hsl('+hue+',100%,50%)';
+        ctx.fillText('Score : ' + currentScore, 440,40);    
+        ctx.fillText("Bombs : " + bombAmount, 440, 90);
+        requestAnimationFrame(animate);
+        hue+=direction;
+        if(hue>255){direction*=-1;hue=255;}
+        if(hue<0){direction*=-1;hue=0;}
     }
 }
 
@@ -304,6 +308,7 @@ function drawBoxes() {
     boxImage.src = "sprites/box.png"
 }
 
+// RYSUJE GRACZY
 function drawPlayers() {
     for(let i=0;i<players.length;i++) {
         if(players[i].nick != null) {
@@ -312,14 +317,30 @@ function drawPlayers() {
                 ctx.drawImage(img, LEFT_LINE + players[i].x * SQUARE, UPPER_LINE + players[i].y * SQUARE, this.width, this.height)
             }
             let imgSrc = "sprites/player" + (i + 1) + ".png";
-            console.log(imgSrc)
             img.src = imgSrc
         }
     }
   }
 
-// RYSUJE TŁO
+// RYSUJE GIFTY
+function drawGifts() {
+    for(let i=0;i<gifts.length;i++) {
+        if(boxes.find(x => x.pos[0] === gifts[i].pos[0] && x.pos[1] === gifts[i].pos[1]) === undefined) {
+            let img = new Image(SQUARE, SQUARE)
+            img.onload = function() {
+                ctx.drawImage(img, LEFT_LINE + gifts[i].pos[0] * SQUARE, UPPER_LINE + gifts[i].pos[1] * SQUARE, this.width, this.height)
+            }
+            if(gifts[i].type === "life") {
+                img.src = "sprites/bonus_life.png"
+            } else if(gifts[i].type === "bomb") {
+                img.src = "sprites/bonus_bomb.png"
+            }
+            
+        }
+    }
+}
 
+// RYSUJE TŁO
 function drawBackground(sizeX, sizeY) {
     // GORNA LINIA
     ctx.moveTo(0,UPPER_LINE)
