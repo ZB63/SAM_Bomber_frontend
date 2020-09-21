@@ -23,6 +23,7 @@ let currentScore;
 let bombAmount;
 let boxes;
 let gifts;
+let gameOver = false
 
 let players = [
     { nick: null, x: -1 , y: -1 },
@@ -77,7 +78,6 @@ function onConnect() {
 function onDisconnect() {
     let message = { msg_code: "disconnect", uid: uID }
     websocket.send(JSON.stringify(message))
-    websocket.close()
 }
 
 function onOpen(evt) {
@@ -101,12 +101,6 @@ function onError(evt) {
 	document.myform.connectButton.disabled = false;
 	document.myform.disconnectButton.disabled = true;
 }
-
-// UWAGA !!!!!!!!
-// ...
-// ...
-// ...
-// DO MODYFIKACJI
 
 function handleWelcomeMessage(message){
     boardSize = message.map_size_x;
@@ -167,6 +161,10 @@ function handleBombExploded(message){
             }
         }
     }
+    if(objects_hit.includes(uID)) {
+        console.log("GAME OVER")
+        gameOver = true
+    }
 }
 
 function clearExplosions(){
@@ -208,7 +206,14 @@ function onMessage(evt) {
         handlePickedGift(message)
     }
 
-    game()
+    if(gameOver) {
+        drawGameOver()
+        let message = { msg_code: "disconnect", uid: uID }
+        websocket.send(JSON.stringify(message)) 
+    } else {
+        game()
+    }
+    
 }
 
 function drawScore() {
@@ -338,6 +343,13 @@ function drawGifts() {
             
         }
     }
+}
+
+// RYSUJE GAME OVER
+function drawGameOver() {
+    ctx.font='25px Verdana';
+    ctx.fillText("GAME OVER", LEFT_LINE + 50, UPPER_LINE - 30);
+    ctx.fillText("GAME OVER", RIGHT_LINE - 150, UPPER_LINE - 30);
 }
 
 // RYSUJE TŁO
