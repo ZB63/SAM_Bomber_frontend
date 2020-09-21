@@ -62,6 +62,7 @@ function game() {
     drawExplosions()
     clearExplosions()
     drawPlayers()
+    drawScore()
 }
 
 function onConnect() {
@@ -189,6 +190,26 @@ function onMessage(evt) {
     }
 
     game()
+}
+
+function drawScore() {
+    ctx.font='25px Verdana';
+    var hue=0;
+    var direction=1;
+
+    requestAnimationFrame(animate);
+
+    function animate(time){
+    ctx.fillStyle='black';
+    ctx.fillRect(400, 8, 210, 100);
+    ctx.fillStyle='hsl('+hue+',100%,50%)';
+    ctx.fillText('Score : ' + currentScore, 440,40);    
+    ctx.fillText("Bombs : " + bombAmount, 440, 90);
+    requestAnimationFrame(animate);
+    hue+=direction;
+    if(hue>255){direction*=-1;hue=255;}
+    if(hue<0){direction*=-1;hue=0;}
+    }
 }
 
 // RYSUJE BOMBY
