@@ -181,12 +181,9 @@ function clearExplosions(){
     }
 }
 
-
 function allPlayersJoined() {
     if( players[0].nick !== null &&
-        players[1].nick !== null &&
-        players[2].nick !== null &&
-        players[3].nick !== null) {
+        players[1].nick !== null ) {
             return true
         }
 }
