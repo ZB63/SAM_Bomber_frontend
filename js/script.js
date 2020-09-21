@@ -7,7 +7,6 @@ const RIGHT_LINE = WIDTH*(13/16)
 
 const GAME_BOARD = HEIGHT-UPPER_LINE // == RIGHT_LINE - LEFT_LINE
 
-let gameStarted = false
 let boardSize // Musi byc nieparzyste
 let SQUARE = GAME_BOARD / boardSize
 let bombs = [] //{ uid: 2137, x: 3 , y: 3 }
@@ -24,6 +23,7 @@ let bombAmount;
 let boxes;
 let gifts;
 let gameOver = false
+let gameStarted = false
 
 let players = [
     { nick: null, x: -1 , y: -1 },
@@ -36,23 +36,25 @@ let players = [
 // bomby mozna usuwac z listy za pomoca bombs.splice(indexBombyDoWywalenia, 1)
 
 document.addEventListener('keydown', function(event) {
-    let key = event.which
-    if(key === 37) {
-        let message = { msg_code: "player_move", x: players[0].x - 1, y: players[0].y, uid: uID }
-        websocket.send(JSON.stringify(message))
-    } else if(key === 39) {
-        let message = { msg_code: "player_move", x: players[0].x + 1, y: players[0].y, uid: uID }
-        websocket.send(JSON.stringify(message))
-    } else if(key === 38) {
-        let message = { msg_code: "player_move", x: players[0].x, y: players[0].y - 1, uid: uID }
-        websocket.send(JSON.stringify(message))
-    } else if(key === 40) {
-        let message = { msg_code: "player_move", x: players[0].x, y: players[0].y + 1, uid: uID }
-        websocket.send(JSON.stringify(message))
-    } else if(key === 32) {
-        // SPACJA - PODKLADANIE BOMBY
-        let message = { msg_code: "player_plant_bomb", uid: uID }
-        websocket.send(JSON.stringify(message))
+    if(gameStarted) {
+        let key = event.which
+        if(key === 37) {
+            let message = { msg_code: "player_move", x: players[0].x - 1, y: players[0].y, uid: uID }
+            websocket.send(JSON.stringify(message))
+        } else if(key === 39) {
+            let message = { msg_code: "player_move", x: players[0].x + 1, y: players[0].y, uid: uID }
+            websocket.send(JSON.stringify(message))
+        } else if(key === 38) {
+            let message = { msg_code: "player_move", x: players[0].x, y: players[0].y - 1, uid: uID }
+            websocket.send(JSON.stringify(message))
+        } else if(key === 40) {
+            let message = { msg_code: "player_move", x: players[0].x, y: players[0].y + 1, uid: uID }
+            websocket.send(JSON.stringify(message))
+        } else if(key === 32) {
+            // SPACJA - PODKLADANIE BOMBY
+            let message = { msg_code: "player_plant_bomb", uid: uID }
+            websocket.send(JSON.stringify(message))
+        }
     }
 })
 
@@ -179,6 +181,23 @@ function clearExplosions(){
     }
 }
 
+
+function allPlayersJoined() {
+    if( players[0].nick !== null &&
+        players[1].nick !== null &&
+        players[2].nick !== null &&
+        players[3].nick !== null) {
+            return true
+        }
+}
+
+function allOtherPlayersDead() {
+    if( players[1].x === -1 && players[1].y === -1 &&
+        players[2].x === -1 && players[2].y === -1 &&
+        players[3].x === -1 && players[3].y === -1 ) {
+            return true
+        }
+}
 function handlePickedGift(message) {
     for(let i=0;i<gifts.length;i++) {
         if(gifts[i].uid === message.gift_uid) {
@@ -209,9 +228,19 @@ function onMessage(evt) {
     if(gameOver) {
         drawGameOver()
         let message = { msg_code: "disconnect", uid: uID }
-        websocket.send(JSON.stringify(message)) 
+        websocket.send(JSON.stringify(message))
+    } else if(gameStarted) {
+        game()
+        if(allOtherPlayersDead()) {
+            drawWin()
+            let message = { msg_code: "disconnect", uid: uID }
+            websocket.send(JSON.stringify(message))
+        }
     } else {
         game()
+        if(allPlayersJoined()) {
+            gameStarted = true
+        }
     }
     
 }
@@ -316,7 +345,7 @@ function drawBoxes() {
 // RYSUJE GRACZY
 function drawPlayers() {
     for(let i=0;i<players.length;i++) {
-        if(players[i].nick != null) {
+        if(players[i].nick != null || (players[i].x !== -1 && players[i].y !== -1)) {
             let img = new Image(SQUARE, SQUARE)
             img.onload = function() {
                 ctx.drawImage(img, LEFT_LINE + players[i].x * SQUARE, UPPER_LINE + players[i].y * SQUARE, this.width, this.height)
@@ -350,6 +379,14 @@ function drawGameOver() {
     ctx.font='25px Verdana';
     ctx.fillText("GAME OVER", LEFT_LINE + 50, UPPER_LINE - 30);
     ctx.fillText("GAME OVER", RIGHT_LINE - 150, UPPER_LINE - 30);
+}
+
+
+// RYSUJE WIN
+function drawWin() {
+    ctx.font='25px Verdana';
+    ctx.fillText("YOU WON!!!", LEFT_LINE + 50, UPPER_LINE - 30);
+    ctx.fillText("YOU WON!!!", RIGHT_LINE - 150, UPPER_LINE - 30);
 }
 
 // RYSUJE TŁO
