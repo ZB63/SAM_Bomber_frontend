@@ -112,7 +112,6 @@ function handleWelcomeMessage(message){
     boxes = JSON.parse(message.box);
     gifts = JSON.parse(message.gifts);
     SQUARE = GAME_BOARD / boardSize
-    //window.setInterval(gameLoop,5)
 }
 
 function handlePlayerPos(message) {
@@ -164,7 +163,6 @@ function handleBombExploded(message){
         }
     }
     if(objects_hit.includes(uID)) {
-        console.log("GAME OVER")
         gameOver = true
     }
 }
@@ -342,7 +340,6 @@ function drawBoxes() {
 
 // RYSUJE GRACZY
 function drawPlayers() {
-    console.log(players)
     for(let i=0;i<players.length;i++) {
         if(players[i].nick !== null || (players[i].x !== 1000 && players[i].y !== 1000)) {
             let img = new Image(SQUARE, SQUARE)
