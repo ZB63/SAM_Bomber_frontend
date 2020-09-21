@@ -61,6 +61,7 @@ function game() {
     drawBombs()
     drawExplosions()
     clearExplosions()
+    drawGifts()
     drawPlayers()
     drawScore()
 }
@@ -113,7 +114,7 @@ function handleWelcomeMessage(message){
     bombAmount = message.bombs_amount;
     currentScore = 0;
     boxes = JSON.parse(message.box);
-    gifts = message.gifts;
+    gifts = JSON.parse(message.gifts);
     SQUARE = GAME_BOARD / boardSize
     //window.setInterval(gameLoop,5)
 }
@@ -176,6 +177,14 @@ function clearExplosions(){
             explosions.splice(i, 1);
             bombs.splice(i, 1);
             break;
+        }
+    }
+}
+
+function handlePickedGift(message) {
+    for(let i=0;i<gifts.length;i++) {
+        if(gifts[i].uid === message.gift_uid) {
+            gifts[i].splice(j, 1);
         }
     }
 }
@@ -309,6 +318,24 @@ function drawPlayers() {
         }
       });
   }
+
+// RYSUJE GIFTY
+function drawGifts() {
+    for(let i=0;i<gifts.length;i++) {
+        if(boxes.find(x => x.pos[0] === gifts[i].pos[0] && x.pos[1] === gifts[i].pos[1]) === undefined) {
+            let img = new Image(SQUARE, SQUARE)
+            img.onload = function() {
+                ctx.drawImage(img, LEFT_LINE + gifts[i].pos[0] * SQUARE, UPPER_LINE + gifts[i].pos[1] * SQUARE, this.width, this.height)
+            }
+            if(gifts[i].type === "life") {
+                img.src = "sprites/bonus_life.png"
+            } else if(gifts[i].type === "bomb") {
+                img.src = "sprites/bonus_bomb.png"
+            }
+            
+        }
+    }
+}
 
 // RYSUJE TŁO
 
