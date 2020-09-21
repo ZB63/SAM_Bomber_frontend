@@ -148,16 +148,19 @@ function handleBombHasBeenPlanted(message) {
 function handleBombExploded(message) {
     explosions.push({
         uid: message.bomb_uid,
-        x_range: message.x_range, 
+        x_range: message.x_range,
         y_range: message.y_range,
         objects_hit: JSON.parse(message.objects_hit), 
         timeStarted: new Date()
     })
+    
     objects_hit = JSON.parse(message.objects_hit);
+    console.log(objects_hit)
     for(let i = 0; i < boxes.length; i++){
         for(let j = 0; j < objects_hit.length; j++){
-            if(boxes[i].uid === objects_hit[j].uid){
+            if(boxes[i].uid === objects_hit[j]){
                 boxes.splice(i, 1);
+                console.log("wywalono boxa")
             }
         }
     }
@@ -212,21 +215,21 @@ function onMessage(evt) {
 // RYSUJE SCORE
 function drawScore() {
     ctx.font='25px Verdana';
-    let hue=0;
-    let direction=1;
+    var hue=0;
+    var direction=1;
 
     requestAnimationFrame(animate);
 
     function animate(time){
-        ctx.fillStyle='black';
-        ctx.fillRect(400, 8, 210, 100);
-        ctx.fillStyle='hsl('+hue+',100%,50%)';
-        ctx.fillText('Score : ' + currentScore, 440,40);    
-        ctx.fillText("Bombs : " + bombAmount, 440, 90);
-        requestAnimationFrame(animate);
-        hue+=direction;
-        if(hue>255){direction*=-1;hue=255;}
-        if(hue<0){direction*=-1;hue=0;}
+    ctx.fillStyle='black';
+    ctx.fillRect(400, 8, 210, 100);
+    ctx.fillStyle='hsl('+hue+',100%,50%)';
+    ctx.fillText('Score : ' + currentScore, 440,40);    
+    ctx.fillText("Bombs : " + bombAmount, 440, 90);
+    requestAnimationFrame(animate);
+    hue+=direction;
+    if(hue>255){direction*=-1;hue=255;}
+    if(hue<0){direction*=-1;hue=0;}
     }
 }
 
@@ -257,7 +260,7 @@ function drawExplosions() {
                 if(bombs[j].uid === bombUid) {
                     posX = bombs[j].x
                     posY = bombs[j].y
-                    bombs.splice(j, 1);
+                    //bombs.splice(j, 1);
                     break
                 }
             }
