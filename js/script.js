@@ -26,10 +26,10 @@ let gameOver = false
 let gameStarted = false
 
 let players = [
-    { nick: null, x: -1 , y: -1 },
-    { nick: null, x: -1 , y: -1 },
-    { nick: null, x: -1 , y: -1 },
-    { nick: null, x: -1 , y: -1 }
+    { nick: null, x: 1000 , y: 1000 },
+    { nick: null, x: 1000 , y: 1000 },
+    { nick: null, x: 1000 , y: 1000 },
+    { nick: null, x: 1000 , y: 1000 }
 ]
 
 // bomby mozna dodawac do listy za pomoca bombs.push({ uid: 2137, x: -1 , y: -1 })
@@ -345,8 +345,9 @@ function drawBoxes() {
 
 // RYSUJE GRACZY
 function drawPlayers() {
+    console.log(players)
     for(let i=0;i<players.length;i++) {
-        if(players[i].nick != null || (players[i].x !== 1000 && players[i].y !== 1000)) {
+        if(players[i].nick !== null || (players[i].x !== 1000 && players[i].y !== 1000)) {
             let img = new Image(SQUARE, SQUARE)
             img.onload = function() {
                 ctx.drawImage(img, LEFT_LINE + players[i].x * SQUARE, UPPER_LINE + players[i].y * SQUARE, this.width, this.height)
