@@ -184,7 +184,7 @@ function clearExplosions(){
 function handlePickedGift(message) {
     for(let i=0;i<gifts.length;i++) {
         if(gifts[i].uid === message.gift_uid) {
-            gifts[i].splice(j, 1);
+            gifts.splice(i, 1);
         }
     }
 }
@@ -204,6 +204,8 @@ function onMessage(evt) {
         handleBombHasBeenPlanted(message)
     } else if(message.msg_code === "Bomb exploded"){
         handleBombExploded(message)
+    } else if(message.msg_code === "gift_picked") {
+        handlePickedGift(message)
     }
 
     game()
@@ -306,17 +308,18 @@ function drawBoxes() {
     boxImage.src = "sprites/box.png"
 }
 
+// RYSUJE GRACZY
 function drawPlayers() {
-    players.forEach(player => {
-        if (player.nick != null) {
-          let img = new Image(SQUARE, SQUARE)
-          img.onload = function() {
-            ctx.drawImage(img, LEFT_LINE + player.x * SQUARE, UPPER_LINE + player.y * SQUARE, this.width, this.height)
-          }
-          img.src = "sprites/player1.png"; 
-          //jak bedziemy miec wszystkie zdjecia : `sprites/${player.image}`;
+    for(let i=0;i<players.length;i++) {
+        if(players[i].nick != null) {
+            let img = new Image(SQUARE, SQUARE)
+            img.onload = function() {
+                ctx.drawImage(img, LEFT_LINE + players[i].x * SQUARE, UPPER_LINE + players[i].y * SQUARE, this.width, this.height)
+            }
+            let imgSrc = "sprites/player" + (i + 1) + ".png";
+            img.src = imgSrc
         }
-      });
+    }
   }
 
 // RYSUJE GIFTY
