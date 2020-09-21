@@ -192,9 +192,9 @@ function allPlayersJoined() {
 }
 
 function allOtherPlayersDead() {
-    if( players[1].x === -1 && players[1].y === -1 &&
-        players[2].x === -1 && players[2].y === -1 &&
-        players[3].x === -1 && players[3].y === -1 ) {
+    if( players[1].x === 1000 && players[1].y === 1000 &&
+        players[2].x === 1000 && players[2].y === 1000 &&
+        players[3].x === 1000 && players[3].y === 1000 ) {
             return true
         }
 }
@@ -226,6 +226,7 @@ function onMessage(evt) {
     }
 
     if(gameOver) {
+        game()
         drawGameOver()
         let message = { msg_code: "disconnect", uid: uID }
         websocket.send(JSON.stringify(message))
@@ -345,7 +346,7 @@ function drawBoxes() {
 // RYSUJE GRACZY
 function drawPlayers() {
     for(let i=0;i<players.length;i++) {
-        if(players[i].nick != null || (players[i].x !== -1 && players[i].y !== -1)) {
+        if(players[i].nick != null || (players[i].x !== 1000 && players[i].y !== 1000)) {
             let img = new Image(SQUARE, SQUARE)
             img.onload = function() {
                 ctx.drawImage(img, LEFT_LINE + players[i].x * SQUARE, UPPER_LINE + players[i].y * SQUARE, this.width, this.height)
