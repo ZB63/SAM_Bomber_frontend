@@ -158,6 +158,14 @@ function handleBombExploded(message){
         objects_hit: JSON.parse(message.objects_hit), 
         timeStarted: new Date()
     })
+    objects_hit = JSON.parse(message.objects_hit);
+    for(let i = 0; i < boxes.length; i++){
+        for(let j = 0; j < objects_hit.length; j++){
+            if(boxes[i].uid === objects_hit[j]){
+                boxes.splice(i, 1);
+            }
+        }
+    }
 }
 
 function clearExplosions(){
