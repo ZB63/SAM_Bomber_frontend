@@ -162,7 +162,7 @@ function handleBombExploded(message){
             }
         }
     }
-    if(objects_hit.includes(uID)) {
+    if(objects_hit.includes(myNick)) {
         gameOver = true
     }
 }
@@ -252,7 +252,7 @@ function drawScore() {
     ctx.fillStyle='black';
     ctx.fillRect(400, 8, 210, 100);
     ctx.fillStyle='hsl('+hue+',100%,50%)';
-    ctx.fillText('Score : ' + currentScore, 440,40);    
+    ctx.fillText('Score : ' + currentScore, 440,40);
     ctx.fillText("Bombs : " + bombAmount, 440, 90);
     requestAnimationFrame(animate);
     hue+=direction;
