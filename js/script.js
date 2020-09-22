@@ -110,8 +110,8 @@ function handleWelcomeMessage(message){
     uID = message.client_uid;
     bombAmount = message.bombs_amount;
     currentScore = 0;
-    boxes = JSON.parse(message.box);
-    gifts = JSON.parse(message.gifts);
+    boxes = message.box;
+    gifts = message.gifts;
     SQUARE = GAME_BOARD / boardSize
 }
 
@@ -159,10 +159,10 @@ function handleBombExploded(message){
         uid: message.bomb_uid,
         x_range: message.x_range, 
         y_range: message.y_range,
-        objects_hit: JSON.parse(message.objects_hit), 
+        objects_hit: message.objects_hit, 
         timeStarted: new Date()
     })
-    objects_hit = JSON.parse(message.objects_hit);
+    objects_hit = message.objects_hit;
     for(let i = 0; i < boxes.length; i++){
         for(let j = 0; j < objects_hit.length; j++){
             if(boxes[i].uid === objects_hit[j]){
