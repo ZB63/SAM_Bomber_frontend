@@ -24,6 +24,7 @@ let boxes;
 let gifts;
 let gameOver = false
 let gameStarted = false
+let myIndex = 0
 
 let players = [
     { nick: null, x: 1000 , y: 1000 },
@@ -39,16 +40,16 @@ document.addEventListener('keydown', function(event) {
     if(gameStarted) {
         let key = event.which
         if(key === 37) {
-            let message = { msg_code: "player_move", x: players[0].x - 1, y: players[0].y, uid: uID }
+            let message = { msg_code: "player_move", x: players[myIndex].x - 1, y: players[myIndex].y, uid: uID }
             websocket.send(JSON.stringify(message))
         } else if(key === 39) {
-            let message = { msg_code: "player_move", x: players[0].x + 1, y: players[0].y, uid: uID }
+            let message = { msg_code: "player_move", x: players[myIndex].x + 1, y: players[myIndex].y, uid: uID }
             websocket.send(JSON.stringify(message))
         } else if(key === 38) {
-            let message = { msg_code: "player_move", x: players[0].x, y: players[0].y - 1, uid: uID }
+            let message = { msg_code: "player_move", x: players[myIndex].x, y: players[myIndex].y - 1, uid: uID }
             websocket.send(JSON.stringify(message))
         } else if(key === 40) {
-            let message = { msg_code: "player_move", x: players[0].x, y: players[0].y + 1, uid: uID }
+            let message = { msg_code: "player_move", x: players[myIndex].x, y: players[myIndex].y + 1, uid: uID }
             websocket.send(JSON.stringify(message))
         } else if(key === 32) {
             // SPACJA - PODKLADANIE BOMBY
@@ -129,6 +130,13 @@ function handlePlayerPos(message) {
             players[i].nick = message.nick
             players[i].x = message.x
             players[i].y = message.y
+
+            for(let i=0;i<players.length;i++) {
+                if(players[i].nick === uID) {
+                    myIndex = i
+                }
+            }
+
             return
         }
     }
