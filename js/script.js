@@ -173,6 +173,12 @@ function handleBombExploded(message){
     if(objects_hit.includes(myNick)) {
         gameOver = true
     }
+    for(let i=0; i<players.length;i++) {
+        if(objects_hit.includes(players[i].nick)) {
+            players[i].x = 1000
+            players[i].y = 1000
+        }
+    }
 }
 
 function clearExplosions(){
@@ -195,11 +201,13 @@ function allPlayersJoined() {
 }
 
 function allOtherPlayersDead() {
-    if( players[1].x === 1000 && players[1].y === 1000 &&
-        players[2].x === 1000 && players[2].y === 1000 &&
-        players[3].x === 1000 && players[3].y === 1000 ) {
-            return true
+    let j = 0
+    for(let i=0; i<players.length;i++) {
+        if(players[i].x === 1000 && players[i].y === 1000) {
+            j += 1
         }
+    }
+    if(j >= 3) return true
 }
 function handlePickedGift(message) {
     for(let i=0;i<gifts.length;i++) {
