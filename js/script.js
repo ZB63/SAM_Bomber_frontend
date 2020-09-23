@@ -376,11 +376,7 @@ function drawGifts() {
             img.onload = function() {
                 ctx.drawImage(img, LEFT_LINE + gifts[i].pos[0] * SQUARE, UPPER_LINE + gifts[i].pos[1] * SQUARE, this.width, this.height)
             }
-            if(gifts[i].type === "life") {
-                img.src = "sprites/bonus_life.png"
-            } else if(gifts[i].type === "bomb") {
-                img.src = "sprites/bonus_bomb.png"
-            }
+            img.src = "sprites/bonus_bomb.png"
             
         }
     }
